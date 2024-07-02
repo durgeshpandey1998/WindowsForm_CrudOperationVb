@@ -11,7 +11,7 @@ Public Class Form1
     End Sub
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
-        'GetDataForId()
+
         Dim id As Integer
         id = TextBox5.Text
         Dim firstName = Trim(TextBox1.Text)
@@ -66,7 +66,7 @@ Public Class Form1
     Private Sub CreateDatabase(databasePath As String)
         databasePath = "G://Durgesh-Learning//Asp.net//CrudOperationVb//Employee.db"
         If Not File.Exists(databasePath) Then
-            'databasePath = connectionString
+
             File.Create(databasePath).Close()
         End If
     End Sub
@@ -82,12 +82,10 @@ Public Class Form1
                 Dim result = command.ExecuteScalar()
                 If result IsNot Nothing AndAlso Not DBNull.Value.Equals(result) Then
                     lastId = Convert.ToInt32(result)
-                    lastId += 1 ' Increment the lastId by 1
+                    lastId += 1
                 End If
             End Using
         End Using
-
-        ' Now lastId holds the incremented value of the last Id from the table
         Return lastId
     End Function
 
@@ -116,8 +114,6 @@ Public Class Form1
         Catch ex As Exception
             MsgBox("Error inserting data: " & ex.Message, MsgBoxStyle.Critical, "Error")
         End Try
-        'MsgBox("Registration successful!", MsgBoxStyle.Information, "Information")
-        'ClearTextBoxes()
     End Sub
 
     Private Sub UpdateData(id As Integer, firstName As String, lastName As String, email As String, gender As String, contact As String, joiningDate As String, dob As String)
@@ -183,7 +179,7 @@ Public Class Form1
     End Function
 
     Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
-        ' Check if the click is on a button cell
+
         If e.RowIndex >= 0 Then
             Dim column As DataGridViewColumn = DataGridView1.Columns(e.ColumnIndex)
 
@@ -286,7 +282,6 @@ Public Class Form1
             actionColumn.UseColumnTextForButtonValue = True
             DataGridView1.Columns.Add(actionColumn)
 
-            ' Add Edit button column
             Dim editColumn As New DataGridViewButtonColumn()
             editColumn.HeaderText = "Edit"
             editColumn.Text = "Edit"
