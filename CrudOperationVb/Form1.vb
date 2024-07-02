@@ -12,8 +12,14 @@ Public Class Form1
 
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
 
-        Dim id As Integer
-        id = TextBox5.Text
+        Dim id As Integer = 0
+        If TextBox5.Text <> "" Then
+            If Integer.TryParse(TextBox5.Text, id) Then
+                id = TextBox5.Text
+            Else
+                MessageBox.Show("Please enter a valid integer in TextBox5")
+            End If
+        End If
         Dim firstName = Trim(TextBox1.Text)
         Dim lastName = Trim(TextBox2.Text)
         Dim gender = If(RadioButton1.Checked, Trim(RadioButton1.Text),
@@ -113,6 +119,7 @@ Public Class Form1
             End Using
         Catch ex As Exception
             MsgBox("Error inserting data: " & ex.Message, MsgBoxStyle.Critical, "Error")
+            LoadGridView()
         End Try
     End Sub
 
@@ -142,6 +149,7 @@ Public Class Form1
             MsgBox("Error updating data: " & ex.Message, MsgBoxStyle.Critical, "Error")
         End Try
         MsgBox("Update successful!", MsgBoxStyle.Information, "Information")
+        LoadGridView()
     End Sub
 
     Private Sub ValidateForm(firstName As String, lastName As String, email As String, gender As String, contact As String, joiningDate As String, dateOfBirth As String)
@@ -177,6 +185,15 @@ Public Class Form1
     Private Function IsValidPhoneNumber(phone As String) As Boolean
         Return Not String.IsNullOrWhiteSpace(phone) AndAlso System.Text.RegularExpressions.Regex.IsMatch(phone, "^\d{1,10}$")
     End Function
+
+    Private Sub DataGridView1_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs)
+        If e.ColumnIndex >= 0 AndAlso e.RowIndex >= 0 Then
+            Dim columnName As String = DataGridView1.Columns(e.ColumnIndex).HeaderText
+            If columnName = "Action" Or columnName = "Edit" Then
+                e.CellStyle.BackColor = Color.DarkGreen ' Replace with your desired color
+            End If
+        End If
+    End Sub
 
     Private Sub DataGridView1_CellContentClick(sender As Object, e As DataGridViewCellEventArgs) Handles DataGridView1.CellContentClick
 
@@ -220,7 +237,7 @@ Public Class Form1
                         TextBox4.Text = Convert.ToString(selectedRow.Cells("Contact").Value)
                         DateTimePicker1.Text = Convert.ToDateTime(selectedRow.Cells("Dob").Value)
                         DateTimePicker2.Text = Convert.ToDateTime(selectedRow.Cells("JoiningDate").Value)
-                        MessageBox.Show($"Edit clicked for ID: {id}, Name: {name}")
+                        'MessageBox.Show($"Edit clicked for ID: {id}, Name: {name}")
                     End If
                 End If
             End If
@@ -293,4 +310,16 @@ Public Class Form1
         DataGridView1.DataSource = dataTable
     End Function
 
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click
+        TextBox1.Text = ""
+        TextBox2.Text = ""
+        TextBox3.Text = ""
+        TextBox4.Text = ""
+        TextBox5.Text = ""
+        RadioButton1.Checked = False
+        RadioButton2.Checked = False
+        RadioButton3.Checked = False
+        DateTimePicker1.Text = ""
+        DateTimePicker2.Text = ""
+    End Sub
 End Class
