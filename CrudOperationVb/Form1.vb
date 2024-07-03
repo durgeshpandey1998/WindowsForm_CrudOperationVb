@@ -30,13 +30,21 @@ Public Class Form1
         Dim contact = Trim(TextBox4.Text)
         Dim joiningDate = Trim(DateTimePicker1.Text)
         Dim dateOfBirth = Trim(DateTimePicker2.Text)
-        ValidateForm(firstName, lastName, email, gender, contact, joiningDate, dateOfBirth)
         CreateDatabase(connectionString)
         CreateTable(connectionString)
-        If id > 0 Then
-            UpdateData(id, firstName, lastName, email, gender, contact, joiningDate, dateOfBirth)
+        If ValidateForm(firstName, lastName, email, gender, contact, joiningDate, dateOfBirth) Then
+            Dim existingEmail As String = GetEmail(email)
+            If Not String.Equals(existingEmail, email, StringComparison.OrdinalIgnoreCase) Then
+                If id > 0 Then
+                    UpdateData(id, firstName, lastName, email, gender, contact, joiningDate, dateOfBirth)
+                Else
+                    InsertData(firstName, lastName, email, gender, contact, joiningDate, dateOfBirth)
+                End If
+            Else
+                MsgBox("Duplicate User. Please Change Email", MsgBoxStyle.Exclamation, "Validation Error")
+            End If
         Else
-            InsertData(firstName, lastName, email, gender, contact, joiningDate, dateOfBirth)
+                MsgBox("Form validation failed. Please correct errors before submitting.", MsgBoxStyle.Exclamation, "Validation Error")
         End If
 
     End Sub
@@ -95,6 +103,19 @@ Public Class Form1
         Return lastId
     End Function
 
+    Private Function GetEmail(email As String) As String
+        Dim result = ""
+        Dim sql As String = "SELECT Email FROM EmployeeDetail WHERE EMAIL = @email"
+        Using connection As New SQLiteConnection(connectionString)
+            connection.Open()
+            Using command As New SQLiteCommand(sql, connection)
+                command.Parameters.AddWithValue("@email", email)
+                result = command.ExecuteScalar()
+            End Using
+        End Using
+        Return result
+    End Function
+
     Private Sub InsertData(firstName As String, lastName As String, email As String, gender As String, contact As String, joiningDate As String, dob As String)
         GetDataForId()
         Dim sql = "INSERT INTO EmployeeDetail (FirstName, LastName, Email, Contact, Gender, Dob, JoiningDate ) VALUES (@firstName, @lastName, @email, @contact, @gender, @dob, @joiningDate)"
@@ -119,8 +140,8 @@ Public Class Form1
             End Using
         Catch ex As Exception
             MsgBox("Error inserting data: " & ex.Message, MsgBoxStyle.Critical, "Error")
-            LoadGridView()
         End Try
+        LoadGridView()
     End Sub
 
     Private Sub UpdateData(id As Integer, firstName As String, lastName As String, email As String, gender As String, contact As String, joiningDate As String, dob As String)
@@ -152,27 +173,28 @@ Public Class Form1
         LoadGridView()
     End Sub
 
-    Private Sub ValidateForm(firstName As String, lastName As String, email As String, gender As String, contact As String, joiningDate As String, dateOfBirth As String)
+    Private Function ValidateForm(firstName As String, lastName As String, email As String, gender As String, contact As String, joiningDate As String, dateOfBirth As String)
         If Not IsValidName(firstName) Then
             MsgBox("Please enter a valid first name (letters only).", MsgBoxStyle.Exclamation, "Warning")
-            Return
+            Return False
         End If
 
         If Not IsValidName(lastName) Then
             MsgBox("Please enter a valid last name (letters only).", MsgBoxStyle.Exclamation, "Warning")
-            Return
+            Return False
         End If
 
         If Not IsValidEmail(email) Then
             MsgBox("Please enter a valid email address.", MsgBoxStyle.Exclamation, "Warning")
-            Return
+            Return False
         End If
 
         If Not IsValidPhoneNumber(contact) Then
             MsgBox("Please enter a valid phone number (up to 10 digits).", MsgBoxStyle.Exclamation, "Warning")
-            Return
+            Return False
         End If
-    End Sub
+        Return True
+    End Function
     Private Function IsValidName(name As String) As Boolean
         Return Not String.IsNullOrWhiteSpace(name) AndAlso System.Text.RegularExpressions.Regex.IsMatch(name, "^[a-zA-Z]+$")
     End Function
@@ -183,7 +205,7 @@ Public Class Form1
     End Function
 
     Private Function IsValidPhoneNumber(phone As String) As Boolean
-        Return Not String.IsNullOrWhiteSpace(phone) AndAlso System.Text.RegularExpressions.Regex.IsMatch(phone, "^\d{1,10}$")
+        Return Not String.IsNullOrWhiteSpace(phone) AndAlso System.Text.RegularExpressions.Regex.IsMatch(phone, "^\d{10}$")
     End Function
 
     Private Sub DataGridView1_CellFormatting(sender As Object, e As DataGridViewCellFormattingEventArgs)
